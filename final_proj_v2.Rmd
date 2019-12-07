@@ -1,0 +1,375 @@
+---
+title: "PLSC 31101 Final Project"
+author: "Madeleine Stevens"
+date: "12/7/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readxl)
+library(doBy)
+library(ggplot2)
+library(sp)
+library(sf)
+library(tmap)
+library(shiny)
+library(ggmap)
+library(leaflet)
+library(mapview)
+library(maps)
+library(mapdata)
+library(colorspace)
+library(rgdal)
+library(rworldmap)
+library(htmlwidgets)
+
+```
+
+###LOADING, CLEANING, AND MERGING THE FIRST TWO DATASETS
+```{r}
+#Loading the SVAC & UCDP data
+
+SVAC <- read_excel(path = "~/Downloads/SVAC_conflictyears_1989-2015.xlsx", sheet = 1)
+UCDP_1side <- read.csv("~/Downloads/ucdp-onesided-191.csv", stringsAsFactors = F)
+
+#Filtering the SVAC and UCDP data so they only cover nonstate actors and the same time period (1989-2015)
+
+SVACnonstate <- SVAC[SVAC$actor_type == 3 | SVAC$actor_type == 6, ]
+
+UCDPnonstate <- UCDP_1side[UCDP_1side$is_government_actor == 0, ]
+
+UCDP_ns_ltd <- UCDPnonstate[UCDPnonstate$year <= 2015, ]
+
+UCDP_ns_ltd <- UCDP_ns_ltd %>%
+  mutate(region = as.numeric(region))
+
+#Merging the filtered SVAC and UCDP dataframes
+
+nonstate_violence <- UCDP_ns_ltd %>%
+  left_join(SVACnonstate, by = c("actor_id" = "actorid_new", "actor_name" = "actor", "year", "region", "location"))
+
+#Replacing all -99 values with NA
+
+nonstate_violence[nonstate_violence == -99] <- NA
+
+#Replacing all n/a values with NA
+
+nonstate_violence[nonstate_violence == "n/a"] <- NA
+nonstate_violence[nonstate_violence == "n/a, n/a"] <- NA
+
+#Dropping irrelevant columns: dropping "version" because I can say what version of the UCDP data I used in my codebook, and dropping the "interm" and "postc" columns (from the SVAC dataset) because I already opted to only use conflict years, and dropping "is_government_actor" because I filtered for nonstate actors.
+
+nonstate_violence <- nonstate_violence %>%
+  select(-c(version, interm, postc, is_government_actor))
+
+#Renaming columns to be more specific: "type" column from the SVAC, which says what type of conflict it is, becomes "conflict_type", "incomp" from the SVAC, which says what the conflict is over, becomes "conflict_issue", and "form" from the SVAC, which says what form of sexual violence is perpetrated, becomes "form_sv".
+
+nonstate_violence <- nonstate_violence %>%
+  rename(conflict_type = type, conflict_issue = incomp, form_sv = form)
+
+#Replacing region numbers with region names for ease of plotting
+
+as.character(nonstate_violence$region)
+
+nonstate_violence$region[nonstate_violence$region == "1"] <- "Europe"
+nonstate_violence$region[nonstate_violence$region == "2"] <- "Middle East"
+nonstate_violence$region[nonstate_violence$region == "3"] <- "Asia"
+nonstate_violence$region[nonstate_violence$region == "4"] <- "Africa"
+nonstate_violence$region[nonstate_violence$region == "5"] <- "Americas"
+
+#Creating a new column for actor-year
+nonstate_violence$actor_year <- paste(nonstate_violence$actor_name, nonstate_violence$year) 
+
+```
+
+###VISUALIZING INITIAL DATA:
+##10 Most Violent Actor-Years by Fatalities
+```{r}
+#Creating a dataframe with the top 10 most violent actor-years in the wom_nonstate_violence dataframe
+
+ten_violent <- nonstate_violence[order(-nonstate_violence$best_fatality_estimate),] %>%
+  head(10)
+  
+#Plotting top 10 most violent actor-years by fatalities, colored by region
+
+plot_violent_ay <- ggplot(data = ten_violent, aes(x = factor(actor_year, levels = actor_year[order(best_fatality_estimate)]), y = best_fatality_estimate, fill = region)) +
+  geom_col() +
+  xlab("Actor Year") +
+  ylab("Best Estimate of Civilian Deaths") +
+  ggtitle("Top 10 Most Violent Actor-Years For Civilians") +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+plot_violent_ay
+```
+
+
+##10 Most Sexually Violent Actor-Years by Aggregate Sexual Violence Severity Score
+```{r}
+#Making a dataframe with the top 10 most sexually violent actor-years* in the wom_nonstate_violence dataframe
+#*flawed, but did this by adding the severity scores across all three sources - if three sources are in agreement about there being severe sexual violence, the group gets a higher score.
+
+nonstate_violence$sv_prev <- (nonstate_violence$state_prev + nonstate_violence$ai_prev + nonstate_violence$hrw_prev)
+
+ten_sv <- nonstate_violence[order(-nonstate_violence$sv_prev),] %>%
+  head(10)
+
+#Plotting top 10 most sexually violent actor-years by severity consensus, colored by country
+
+plot_sv_ay <- ggplot(data = ten_sv, aes(x = factor(actor_year, levels = actor_year[order(sv_prev)]), y = sv_prev, fill = location)) +
+  geom_col() +
+  xlab("Actor Year") +
+  ylab("Composite Sexual Violence Prevalence") +
+  ggtitle("Top 10 Most Sexually Violent Actor-Years") +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+plot_sv_ay
+
+```
+
+##Visualizing Total Civilian Deaths by Group
+```{r}
+#Creating a simplified dataset to visualize total deaths by group
+
+simp_nonstate_violence <- nonstate_violence %>%
+  group_by(actor_id, actor_name) %>%
+  summarize(total_deaths_best = sum(best_fatality_estimate))
+
+simp_nonstate_violence <- simp_nonstate_violence[order(-simp_nonstate_violence$total_deaths_best),]
+
+#Plotting that dataset
+
+plot_simp_nsv <- ggplot(data = simp_nonstate_violence, aes(x = factor(actor_id, levels = actor_id[order(total_deaths_best)]), y = total_deaths_best, fill = total_deaths_best)) +
+  geom_col() +
+  scale_fill_gradient(low = "maroon", high = "red") +
+  xlab("Actor") +
+  ylab("Best Civilian Fatality Estimate") +
+  ggtitle("Actors Ordered by Violence") +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+plot_simp_nsv
+
+#Only useful for seeing the distribution - impossible to see the actor names
+```
+
+##Visualizing Total Civilian Deaths by Region
+```{r}
+geo_nonstate_violence <- nonstate_violence %>%
+  group_by(region) %>%
+  summarize(geo_fatalities = sum(best_fatality_estimate))
+
+plot_geo_nsv <- ggplot(data = geo_nonstate_violence, aes(x = factor(region, levels = region[order(geo_fatalities)]), y = geo_fatalities, fill = region)) +
+  geom_col() +
+  xlab("Region (NA = Multiple)") +
+  ylab("Best Estimate of Civilian Fatalities") +
+  ggtitle("Most Violent Regions Toward Civilians, 1989-2015")
+
+plot_geo_nsv
+```
+
+##Collapsing the Actor-Year Dataset into an Actor Dataset
+```{r}
+#Figuring out how many unique actors are in the dataset: 190
+
+length(unique(nonstate_violence$actor_id))
+
+#Collapsing dataset into actor instead of actor-year
+nonstate_violence2 <- nonstate_violence %>%
+  group_by(actor_id, region, actor_name) %>%
+  summarize(Total_Fatalities = sum(best_fatality_estimate), Total_SV = sum(sv_prev))
+
+#PROBLEM: transnational armed groups (IS, Al Qaeda) show up multiple times
+
+#Finding and plotting number of unique actors per region (NA = the transnational groups I can't figure out what to do with)
+nsv_unique <- nonstate_violence2 %>%
+  group_by(region) %>%
+  mutate(unique_actors = sum(n_distinct(actor_id)))
+
+nsv_unique <- nsv_unique %>%
+  group_by(region) %>%
+  summarize(total_actors = max(unique_actors))
+
+plot_region_actors <- ggplot(data = nsv_unique, aes(x = factor(region, levels = region[order(total_actors)]), y = total_actors, fill = region)) +
+  geom_col() +
+  xlab("Region (NA = Multiple)") +
+  ylab("Total Nonstate Actors") +
+  ggtitle("Total Nonstate Actors per Region, 1989-2015")
+
+plot_region_actors
+```
+
+
+###PREPARING FOR MAPS!!
+##Finding top 5 most violent groups in each region
+```{r}
+#Finding the top 5 most violent groups in each region in order to filter the UCDP geocoded data by these groups so that we can do cooler maps than just continent or country!
+
+find_top5 <- function(i){
+  nsvi <- nonstate_violence2 %>%
+    select(region, actor_name, Total_Fatalities, actor_id) %>%
+    filter(region == i)
+  nsvi$top5 <- rank(-nsvi$Total_Fatalities)
+  nsvi_5 <- head(nsvi[order(nsvi$top5), ], 5)
+  return(nsvi_5)
+}
+
+nsv_top_5 <- find_top5("Asia") %>%
+  full_join(find_top5("Middle East")) %>%
+  full_join(find_top5("Europe")) %>%
+  full_join(find_top5("Africa")) %>%
+  full_join(find_top5("Americas"))
+
+
+```
+
+##Loading, cleaning, and merging geocoded data from UCDP
+```{r}
+UCDP_ged <- read.csv("~/Downloads/ged191.csv", stringsAsFactors = F)
+
+#Filtering data to only the one-sided violence
+UCDP_ged_1side <- UCDP_ged[UCDP_ged$side_b == "Civilians", ]
+
+#Merging the dataframe with the top 5 deadliest groups from each region with the geocoded data of their violence against civilians
+UCDP_ged_top5 <- nsv_top_5 %>%
+  left_join(UCDP_ged_1side, by = c("region", "actor_name" = "side_a"))
+
+
+```
+
+##Map time!
+```{r}
+
+#First, a world map with all of the events coded
+
+new_map <- getMap(resolution = "low")
+all_events_map <- plot(new_map, asp = 1) +
+points(UCDP_ged$lon, UCDP_ged$lat, col = "red", cex = .6)
+
+#Not very useful, huh?
+
+```
+###INTERACTIVE MAPS!
+
+##Map of a single region: Middle East
+```{r}
+#Next, I'll map all incidences of one sided violence by the top 4 groups in the Middle East (minus Syria, because the UCDP_ged dataset doesn't include it)
+
+UCDP_ged_top5ME <- find_top5("Middle East") %>%
+  left_join(UCDP_ged_1side, by = c("region", "actor_name" = "side_a"))
+
+#Dropping Syrian Insurgents because the UCDP geo dataset doesn't cover Syria
+UCDP_ged_top4_ME <- UCDP_ged_top5ME %>%
+  filter(actor_name !="Syrian insurgents")
+
+#Filtering dataset to just have variables we need for this part of the project
+UCDPG_ME_tomap <- UCDP_ged_top4_ME %>%
+  select(region, actor_name, latitude, longitude, geom_wkt, priogrid_gid, country, deaths_civilians)
+
+all_events_map_ME <- plot(new_map, xlim = c(15, 40), ylim = c(10, 60), asp = 1) +
+points(UCDPG_ME_tomap$longitude, UCDPG_ME_tomap$latitude, col = "red", cex = .6)
+
+UCDP_map_ME <- st_as_sf(UCDPG_ME_tomap, coords = c("longitude", "latitude"), crs = 4326)
+
+Map_ME <-mapview(UCDP_map_ME, zcol = "actor_name", legend = TRUE)
+
+Map_ME
+```
+
+
+##Interactive Data, All Regions
+```{r}
+#Now to make an interactive map with all event data from the top 5 groups in each region (4 for Middle East, see above)
+
+UCDP_ged_top5_2 <- UCDP_ged_top5 %>%
+  filter(actor_name != "Syrian insurgents")
+
+UCDP_map_all <- st_as_sf(UCDP_ged_top5_2, coords = c("longitude", "latitude"), crs = 4326)
+
+#Map of Violent Events By Actor
+Map_All <- mapview(UCDP_map_all, zcol = "actor_name", legend = TRUE, layer.name = "Violent Events by Actor")
+
+Map_All
+
+#Map of Violent Events by Civilian Deaths
+Map_All_deaths <- mapview(UCDP_map_all, zcol = "best", legend = TRUE, cex = "best", layer.name = "Violent Events by Civilian Deaths")
+
+Map_All_deaths
+```
+
+###OK, NOW FOR THE WOMEN STUFF
+```{r}
+#Loading the WARD
+WARD <- read_excel(path = "~/Downloads/ward_1_3.xlsx", sheet = 1)
+
+#Making sure there are compatible keys between the WARD and the nonstate_violence2 datasets
+WARD <- WARD %>%
+  mutate(gwnoa = as.numeric(gwnoa))
+
+#Merging the WARD and the nonstate_violence2 datasets
+wom_nonstate_violence <- nonstate_violence2 %>%
+  left_join(WARD, by = c("actor_id" = "sidebid"))
+
+#Filtering out the groups with no data for percentage of members who are women
+
+wom_nonstate_violence_filtered <- wom_nonstate_violence %>%
+  select(actor_id, region, actor_name, Total_Fatalities, Total_SV, cat4_prevalence_high) %>%
+  filter(cat4_prevalence_high == 0 | cat4_prevalence_high == 1 | cat4_prevalence_high == 2 | cat4_prevalence_high == 3)
+
+#Plotting distribution of female group membership
+total_women_plot <- ggplot(wom_nonstate_violence_filtered, aes(x=cat4_prevalence_high)) +
+  geom_histogram(binwidth=1, color = "black", fill = "light blue") +
+  xlab("Levels of Female Armed Group Participation (High Estimate)") +
+  ylab("Number of Groups") +
+  ggtitle("Levels of Female Armed Group Participation")
+
+total_women_plot
+
+#Plotting regional distribution of female group membership
+region_wom <-ggplot(wom_nonstate_violence_filtered, aes(x=cat4_prevalence_high))+
+  geom_histogram(binwidth=1, color="black", fill="light blue")+
+  facet_wrap(region ~ .)
+
+region_wom
+
+```
+
+##Sexual Violence and Female Group Members
+```{r}
+#Ordering the wom_nonstate_violence_filtered dataset by total sexual violence
+wom_sv <- wom_nonstate_violence_filtered[order(-wom_nonstate_violence_filtered$Total_SV),]
+
+#Creating a dataset that only has groups with information on both sexual violence and female participation
+wom_sv_2 <- na.omit(wom_sv)
+
+#Demonstrating that this is too small to do much with
+dim(wom_sv_2)
+```
+
+
+###WRITING CSV FILES OF KEY DATA & SAVING PLOTS TO FILES
+```{r}
+write.csv(nonstate_violence, file = "NSV_Actor-Year.csv")
+write.csv(nonstate_violence2, file = "NSV2_Actor.csv")
+write.csv(nsv_top_5, file = "Top5_NSV.csv")
+write.csv(UCDP_ged_top5_2, file = "Top5_Geo_UCDP.csv")
+write.csv(wom_nonstate_violence_filtered, file = "Wom_NSV_Filtered.csv")
+write.csv(wom_sv_2, file = "Wom_Members_SV.csv")
+
+
+ggsave(filename="10_Most_Violent_Actor_Years.pdf", plot=plot_violent_ay, scale=, width=, height=)
+ggsave(filename="10_Most_Sexually_Violent_Actor_Years.pdf", plot=plot_sv_ay, scale=, width=, height=)
+ggsave(filename="Groups_Organized_By_Violence.pdf", plot=plot_simp_nsv, scale=, width=, height=)
+ggsave(filename="Violence_by_Region.pdf", plot=plot_geo_nsv, scale=, width=, height=)
+ggsave(filename = "Groups_By_Region.pdf", plot=plot_region_actors, scale=, width=, height=)
+ggsave(filename = "Groups_By_Region.pdf", plot=plot_region_actors, scale=, width=, height=)
+ggsave(filename = "Total_Women.pdf", plot=total_women_plot, scale=, width=, height=)
+ggsave(filename = "Total_Women_Region.pdf", plot=region_wom, scale=, width=, height=)
+
+
+```
+
+

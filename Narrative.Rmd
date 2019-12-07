@@ -1,7 +1,7 @@
 ---
 title: "Narrative"
-author: "Rochelle Terman"
-date: "11/24/2019"
+author: "Madeleine Stevens"
+date: "12/7/2019"
 output: pdf_document
 ---
 
@@ -11,7 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Brief substantive background / goal
 
+I planned to merge three datasets (the Women in Armed Rebellion Dataset, the Sexual Violence in Armed Conflict dataset, and the UCDP One-sided Violence Dataset) to address questions regarding the presence of female combatants in nonstate armed groups, and whether that impacts these groups' violence toward civilians, specifically their use of sexual violence. I intended to make charts, static maps, and interactive maps visualizing aspects of nonstate actors' violence toward civilians.
+
+
 ## Collecting data
+
+In order to explore this topic, I first merged the Sexual Violence in Armed Conflict dataset (SVAC, 1989-2015), and the UCDP One-sided Violence Dataset (1989-2018). Later, I added in the UCDP Georeferenced Event Dataset (UCDP GED, 1988-2018, minus Syria) and the Women in Armed Rebellion Dataset (WARD, 1964-2014).
+
+All four datasets are easily downloadable from their authors' websites (links in documentation).
 
 ## Cleaning / pre-processing data
 
