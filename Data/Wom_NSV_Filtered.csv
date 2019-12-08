@@ -1,0 +1,93 @@
+"","actor_id","region","actor_name","Total_Fatalities","Total_SV","cat4_prevalence_high"
+"1",169,"Asia","CPP",34,0,3
+"2",193,"Asia","PWG",47,NA,2
+"3",194,"Asia","MCC",110,NA,3
+"4",195,"Asia","CPI-Maoist",1658,NA,3
+"5",208,"Middle East","PIJ",93,0,1
+"6",209,"Middle East","Hamas",412,NA,1
+"7",211,"Middle East","AMB",122,NA,1
+"8",223,"Asia","NSCN-IM",408,NA,1
+"9",233,"Middle East","Ansar al-Islam",117,0,1
+"10",234,"Middle East","IS",12844,NA,1
+"11",234,NA,"IS",6063,NA,1
+"12",258,"Asia","CPN-M",1217,NA,3
+"13",270,"Asia","KR",661,NA,2
+"14",276,"Asia","MILF",266,NA,0
+"15",277,"Asia","ASG",243,NA,0
+"16",281,"Asia","JVP",250,NA,0
+"17",285,"Asia","JSS/SB",250,NA,0
+"18",287,"Asia","BLA",31,NA,0
+"19",303,"Asia","Taleban",1589,NA,0
+"20",304,"Asia","UIFSA",200,0,0
+"21",306,"Asia","ATTF",170,NA,1
+"22",307,"Asia","NLFT",388,NA,0
+"23",310,"Middle East","Jondullah",25,0,0
+"24",319,"Asia","Sikh insurgents",1348,NA,1
+"25",320,"Asia","LTTE",2426,NA,3
+"26",323,"Middle East","PKK",1201,NA,3
+"27",325,"Asia","Kashmir insurgents",3074,NA,0
+"28",326,"Asia","ULFA",437,NA,2
+"29",327,"Asia","GAM",243,0,1
+"30",338,"Europe","Republic of Artsakh",161,NA,1
+"31",341,"Middle East","al-Gama'a al-Islamiyya",181,NA,0
+"32",342,"Europe","Republic of Abkhazia",126,NA,1
+"33",350,"Europe","Croatian Republic of Bosnia-Herzegovina",169,NA,1
+"34",352,"Europe","Chechen Republic of Ichkeria",199,0,2
+"35",356,"Asia","TTP",2164,NA,1
+"36",363,"Asia","NDFB",596,NA,0
+"37",365,"Asia","Patani insurgents",1864,NA,0
+"38",367,"Europe","Forces of the Caucasus Emirate",138,0,1
+"39",399,"Asia","Lashkar-e-Islam",29,0,0
+"40",422,"Africa","AFDL",35126,NA,0
+"41",424,"Africa","RCD",5314,NA,1
+"42",426,"Africa","CNDP",157,3,2
+"43",431,"Africa","CNDD",62,NA,1
+"44",432,"Africa","Palipehutu-FNL",463,NA,1
+"45",434,"Africa","CNDD-FDD ",245,NA,2
+"46",448,"Africa","CSNPD",124,NA,0
+"47",451,"Africa","FARF",33,NA,0
+"48",466,"Africa","SPLM/A",1172,NA,2
+"49",468,"Africa","JEM",69,NA,0
+"50",469,"Africa","SLM/A",63,1,0
+"51",471,"Africa","SLM/A - MM",72,NA,0
+"52",486,"Africa","UPA",40,NA,0
+"53",488,"Africa","LRA",7827,NA,2
+"54",489,"Africa","ADF",1268,NA,1
+"55",490,"Africa","WNBF",27,NA,0
+"56",497,"Africa","ONLF",82,0,1
+"57",498,"Africa","Renamo",1400,NA,2
+"58",507,"Africa","NPFL",6042,NA,2
+"59",508,"Africa","INPFL",84,0,3
+"60",509,"Africa","LURD",538,NA,3
+"61",513,"Africa","ANC",40,NA,2
+"62",522,"Africa","FIAA",96,NA,0
+"63",527,"Africa","FPR",1323,NA,1
+"64",528,"Africa","FDLR",1515,NA,1
+"65",529,"Africa","MFDC",195,NA,0
+"66",532,"Africa","RUF",5963,NA,3
+"67",533,"Africa","AFRC",2065,NA,2
+"68",534,"Africa","Kamajors",37,NA,1
+"69",538,"Africa","GIA",1435,NA,0
+"70",539,"Africa","AQIM",189,NA,0
+"71",545,"Africa","Cobras",39,NA,0
+"72",548,"Africa","Ntsiloulous",116,NA,0
+"73",554,"Africa","Seleka",43,NA,0
+"74",556,"Africa","MPCI",156,NA,0
+"75",557,"Africa","MPIGO",65,1,0
+"76",558,"Africa","FRCI",202,NA,2
+"77",567,"Africa","UNITA",2337,NA,2
+"78",717,"Africa","Al-Shabaab",946,NA,1
+"79",743,"Americas","FARC",1177,NA,3
+"80",744,"Americas","ELN",146,NA,3
+"81",750,"Americas","Sendero Luminoso",605,NA,3
+"82",1051,"Africa","Jama'atu Ahlis Sunna Lidda'awati wal-Jihad",7884,NA,1
+"83",1128,"Africa","ALiR",3183,NA,0
+"84",1160,"Africa","M23",32,6,2
+"85",3481,"Africa","Signed-in-Blood Battalion",26,NA,0
+"86",3967,"Africa","Kata Katanga",173,0,2
+"87",4163,"Middle East","PYD",113,NA,3
+"88",4201,"Africa","anti-Balaka",2132,NA,1
+"89",4226,"Africa","SPLM/A In Opposition",685,5,1
+"90",4456,"Middle East","Syrian insurgents",732,0,1
+"91",5659,"Middle East","al-Mahdi Army",124,NA,0
+"92",5826,"Asia","NDFB-S",135,0,1

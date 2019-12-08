@@ -365,10 +365,17 @@ ggsave(filename="10_Most_Sexually_Violent_Actor_Years.pdf", plot=plot_sv_ay, sca
 ggsave(filename="Groups_Organized_By_Violence.pdf", plot=plot_simp_nsv, scale=, width=, height=)
 ggsave(filename="Violence_by_Region.pdf", plot=plot_geo_nsv, scale=, width=, height=)
 ggsave(filename = "Groups_By_Region.pdf", plot=plot_region_actors, scale=, width=, height=)
-ggsave(filename = "Groups_By_Region.pdf", plot=plot_region_actors, scale=, width=, height=)
 ggsave(filename = "Total_Women.pdf", plot=total_women_plot, scale=, width=, height=)
 ggsave(filename = "Total_Women_Region.pdf", plot=region_wom, scale=, width=, height=)
 
+jpeg("all_events_map.jpeg", width = 2000, height = 2000)
+plot(new_map, asp = 1) +
+points(UCDP_ged$lon, UCDP_ged$lat, col = "red", cex = .6)
+dev.off()
+
+jpeg("all_events_map_ME.jpeg", width = 1000, height = 1000)
+plot(new_map, xlim = c(15, 40), ylim = c(10, 60), asp = 1) +
+points(UCDPG_ME_tomap$longitude, UCDPG_ME_tomap$latitude, col = "red", cex = .6)
 
 ```
 
